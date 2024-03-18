@@ -1,0 +1,195 @@
+###Scrip para curvas de rarefaccion####
+
+
+# Se cargan las librerias 
+library(iNEXT)
+library(ggplot2)
+library (iNEXT.3D)
+
+# Se cargan los datos de mamiferos
+datos <- read.csv("nombre de la ubicacion de la base de datos")
+datos
+
+# creamos el modelo con la funciÃ³n iNEXT 
+
+t<- seq(1,400)
+modinext <- iNEXT(datos, q= 0, datatype = "incidence_freq", size = t)
+modinext
+
+# el nboot remuestreo
+modinext <- iNEXT(datos, q= 0, datatype = "incidence_freq", nboot = 100)
+max_y_value <- 130
+min_y_value <- 0 
+#-----------------
+
+plot <- ggiNEXT(modinext, type = 1, se = TRUE, color.var = "site", grey = FALSE)+
+    theme_classic(base_size = 12) +  
+    theme(legend.position = "bottom", text = element_text(size = 18), 
+          legend.title = element_blank()) +
+    labs (x = "Numbers of sampling units", y = "Species diversity") +
+ggtitle("Assemblage of mammals")
+plot <- plot + ylim(c(0, 125))
+print(plot)
+
+# GrÃ¡ficamos la funciÃ³n ggiNEXT (type = 1) Diversidad con intervalos de confianza
+
+mod01 <- iNEXT(datos, q= c(0,1,2), datatype = "incidence_freq", nboot = 100)
+mod01
+
+ggiNEXT(mod01, type=1, facet.var="order")+
+    labs( x = "Numbers of sampling units", y = "Species diversity")
+
+####SCRIP PARA NUMEROS DE HILL####
+
+CURVA <- ObsAsy3D (datos, diversity = "TD", 
+                   datatype = "incidence_freq")
+ggObsAsy3D(CURVA)
+
+#PARA CAMBIAR COLORES#
+mis_colores <- c("black", "orange", "purple")
+GRAFICA <- ggObsAsy3D(CURVA)
+GRAFICA + scale_color_manual(values = mis_colores)
+
+#Curva de rango-abundancia#
+
+library(vegan)
+library(BiodiversityR)
+library(ggplot2)
+
+
+# se cargan los datos de la siguiente manera 
+
+datos <- read.csv("bases/IAR_MAMIFEROS_inext.csv", header = T)
+
+mamiferos <- datos [,- c(1,2,3)]
+head(mamiferos)
+sitios    <- datos [, c(1,2,3)] 
+head(sitios)
+
+datos <- read.csv("bases/IAR_MAMIFEROS_inext.csv", header = T)
+
+# Separar las especies pertenecientes a cada sitio
+
+S1  <- datos[datos$sitios == "1",]  ## Seleccionar sitio-1
+head(S1)
+
+S1.1  <- S1 [,- c(1,2,3)] # dejar solamente las especies de mamÃ­feros
+S1.1
+
+S2 <- datos[datos$sitios == "2",] # Seleccionar sitio-2
+
+S2.1  <-S2 [,- c(1,2,3)]                # dejar solamente las especies de mamÃ­feros
+S2.1
+
+S3 <- datos[datos$sitios == "3",] # Seleccionar sitio-3
+
+S3.1  <-S3 [,- c(1,2,3)]                # dejar solamente las especies de mamÃ­feros
+S3.1
+
+
+## Curvas de rango abundacia###
+
+RA.S1<-rankabundance(S1.1) # Rango abundancia sitio 1
+RA.S1
+RA.S2<-rankabundance(S2.1) # Rango abundancia sitio 2
+RA.S2
+RA.S3<-rankabundance(S3.1) # Rango abundancia sitio 3
+RA.S3
+# grÃ¡fico de las curvas utilizando "logabun"
+
+rankabunplot(RA.S1, 
+             scale = "proportion", 
+             addit = F, 
+             specnames = c(1:26), 
+             col= "black", 
+             xlim = c(0,90), 
+             type = "o", 
+             pch = 2, 
+             lwd = 1, 
+             srt = 45, 
+             cex= 2, 
+             las= 1, 
+             ylim = c(1,40), 
+             cex.lab = 1.5, 
+             cex.axis = 1.5, 
+             xaxt = "n")
+
+
+par(new = TRUE)
+
+rankabunplot(RA.S2, 
+             scale = "proportion", 
+             addit = F, 
+             specnames = c(1:26), 
+             col= "orange",
+             xlim = c(-18,50), 
+             type = "o", 
+             pch =2, 
+             lwd = 1, 
+             srt = 45, 
+             cex= 2, 
+             las= 1, 
+             ylim = c(1,40), 
+             xaxt = "n", 
+             cex.lab = 1.5, 
+             cex.axis = 1.5)
+
+par(new = TRUE)
+
+rankabunplot(RA.S3, 
+             scale = "proportion", 
+             addit = F, 
+             specnames = c(1:26), 
+             col= "purple",
+             xlim = c(-28,25), 
+             type = "o", 
+             pch =2, 
+             lwd = 1, 
+             srt = 45, 
+             cex= 2, 
+             las= 1, 
+             ylim = c(1,40), 
+             xaxt = "n", 
+             cex.lab = 1.5, 
+             cex.axis = 1.5)
+
+####NMDS#####
+library(vegan)
+library(BiodiversityR)
+library(ggplot2)
+
+#Cargar los datos
+
+Data <- read.csv("IAR_MAMIFEROS.csv", header = T)#Cargar los datos
+
+Data
+summary(Data)
+attach(Data)
+names(Data)
+
+Df<- Data[,4:29]#Extraer solo los datos de los mamíferos
+Df
+#Sitio1<- Data[2:61,]
+#Sitio2<- Data[62:106,]
+#Sitio3<- Data[107:128,]
+
+ord <- metaMDS(Df)#ordenar los datos
+ord# nos da los valores de estress
+windows()
+plot (ord) #, type="t")#Nos muestra como estan agrupados en rojo las espcIes y en negro las estaciones
+Site <- Data [,3]#Para que nos muestre por grupos vamos a especificar que hay distintos
+Site
+
+lty <- c(1, 2, 3)
+ordihull (ord, Site, lty=lty, draw = "polygon")
+text(ord, display="spec", cex=0.6, col="black") 
+#text(ord, display="sites", cex=0.6, col="gray")#Para agregar los nombres de la zona
+
+legend("bottomright", inset = 0.05,
+      legend = c("Zone 1", "Zone 2", "Zone 3"),
+       bg = rgb(0, 0, 0, alpha = 0.15), # Color de fondo
+       box.col = "white",               # Color del borde
+       lty = c(1, 2, 3),                # forma de las lineas
+       xpd = TRUE)                      # para que quede fuera del plot
+
+legend ('topleft', legend = "Bray Curtis, Stress=0.1820", bty= "n", cex=0.8)
